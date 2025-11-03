@@ -87,6 +87,8 @@ const stats = [
 })();
 
 
+
+
 function drawScatter(data, commits) {
   const width = 800;
   const height = 400;
@@ -143,30 +145,27 @@ function drawScatter(data, commits) {
       .call(d3.axisLeft(yScale)
         .tickFormat(d => String(d % 24).padStart(2, '0') + ':00'));
 
+        
   // 점 그리기 + tooltip 이벤트
-  svg.selectAll('circle')
-    .data(commits)
-    .join('circle')
-    .attr('cx', d => xScale(d.date))
-    .attr('cy', d => yScale(d.hourFrac))
-    .attr('r', 5)
-    .attr('fill', 'steelblue')
-    .attr('opacity', 0.7)
-    .on('mouseenter', (event, commit) => {
-      renderTooltipContent(commit);
-      const tooltip = document.getElementById('commit-tooltip');
-      tooltip.style.display = 'block';
-      tooltip.style.left = (event.pageX + 10) + 'px';
-      tooltip.style.top = (event.pageY + 10) + 'px';
-    })
-    .on('mousemove', (event) => {
-      const tooltip = document.getElementById('commit-tooltip');
-      tooltip.style.left = (event.pageX + 10) + 'px';
-      tooltip.style.top = (event.pageY + 10) + 'px';
-    })
-    .on('mouseleave', () => {
-      document.getElementById('commit-tooltip').style.display = 'none';
-    });
+svg.selectAll('circle')
+  .data(commits)
+  .join('circle')
+  .attr('cx', d => xScale(d.date))
+  .attr('cy', d => yScale(d.hourFrac))
+  .attr('r', 5)
+  .attr('fill', 'steelblue')
+  .attr('opacity', 0.7)
+  .on('mouseenter', (event, commit) => {
+      renderTooltipContent(commit);    // 내용 업데이트
+      updateTooltipVisibility(true);   // 툴팁 보여주기
+      updateTooltipPosition(event);    // 마우스 위치로 이동
+  })
+  .on('mousemove', (event) => {
+      updateTooltipPosition(event);    // 마우스 따라 이동
+  })
+  .on('mouseleave', () => {
+      updateTooltipVisibility(false);  // 툴팁 숨기기
+  });
 }
 
 // tooltip 내용 렌더링
@@ -191,3 +190,17 @@ function renderTooltipContent(commit) {
   document.getElementById('commit-lines').textContent = commit.totalLines;
 }
 
+function updateTooltipVisibility(isVisible) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.hidden = !isVisible;
+}
+
+function updateTooltipPosition(event) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.style.left = `${event.pageX + 10}px`;
+    tooltip.style.top = `${event.pageY + 10}px`;
+}
+
+
+
+/*Step 4: Communicating lines edited via dot size 부터 할차례임*/

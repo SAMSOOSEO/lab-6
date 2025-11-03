@@ -329,25 +329,25 @@ dl.info dd {
 }
 
 .tooltip {
-  display: none;  /* 처음에는 숨김 */
-  position: fixed;
-  top: 1em;
-  left: 1em;
-  background-color: white;
+  position: absolute;
+  background-color: rgba(255,255,255,0.9);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 6px;
   padding: 0.5em 1em;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  pointer-events: none; /* 마우스 이벤트 방해 안함 */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  pointer-events: none;
+  transition: 0.2s;
 }
 
-/* 점 hover 애니메이션 */
-circle {
-  transition: 200ms;
-  transform-origin: center;
-  transform-box: fill-box;
+dl.info {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 0.2em 0.5em;
+  margin: 0;
+  transition-duration: 500ms;
+  transition-property: opacity, visibility;
 }
 
-circle:hover {
-  transform: scale(1.5);
+dl.info[hidden]:not(:hover, :focus-within) {
+  opacity: 0;
+  visibility: hidden;
 }
