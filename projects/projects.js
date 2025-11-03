@@ -4,8 +4,8 @@ import { fetchJSON, renderProjects } from '../global.js';
 const projectsContainer = document.querySelector('.projects');
 const projectsTitle = document.querySelector('.projects-title');
 const searchInput = document.querySelector('.searchBar');
-
-const projects = await fetchJSON(`${BASE_PATH}lib/projects.json`);
+const projects = await fetchJSON(`../lib/projects.json`);
+/*const projects = await fetchJSON(`${BASE_PATH}lib/projects.json`);*/
 
 if (projectsTitle) {
     projectsTitle.textContent = `Projects (${projects.length})`;

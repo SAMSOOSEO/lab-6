@@ -12,6 +12,7 @@ const pages = [
   { url: 'projects/', title: 'Projects' },
   { url: 'contact/', title: 'Contact' },
   { url: 'resume/', title: 'CV & Resume' },
+  { url: 'meta/', title: 'meta' },
   { url: 'https://github.com/samsooseo', title: 'GitHub' }
 ];
 
@@ -23,7 +24,7 @@ document.body.prepend(nav);
 const BASE_PATH =
   location.hostname === 'localhost' || location.hostname === '127.0.0.1'
     ? '/'             // 로컬 서버
-    : '/Lab-5/';      // GitHub Pages repo 이름
+    : '/lab-6/';      // GitHub Pages repo 이름
 
 // 페이지 링크 반복 생성
 for (let p of pages) {
