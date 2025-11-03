@@ -83,15 +83,14 @@ const stats = [
     const data = await loadData();
     const commits = processCommits(data);
     renderCommitInfo(data, commits);
-     drawScatter(data); 
+     drawScatter(data, commits); 
 })();
 
 
-function drawScatter(data) {
+function drawScatter(data, commits) {
   const width = 800;
   const height = 400;
-
-  const margin = { top: 10, right: 10, bottom: 30, left: 50 };
+  const margin = { top: 10, right: 10, bottom: 50, left: 60 };
   const usableArea = {
     top: margin.top,
     right: width - margin.right,
@@ -107,40 +106,88 @@ function drawScatter(data) {
     .attr('height', height);
 
   // 스케일
-
   const yScale = d3.scaleLinear()
     .domain([0, 24])
-    .range([usableArea.bottom, usableArea.top]); // y 축은 위쪽이 0
+    .range([usableArea.bottom, usableArea.top]);
 
-  // X축
-const xScale = d3.scaleTime()
-    .domain(d3.extent(data, d => d.date)) // datetime 대신 date 사용
+  const xScale = d3.scaleTime()
+    .domain(d3.extent(data, d => d.date))
     .range([usableArea.left, usableArea.right]);
 
-// X축
-const xAxis = d3.axisBottom(xScale)
-    .ticks(d3.timeDay.every(1)) // 하루 단위 눈금
-    .tickFormat(d3.timeFormat('%Y-%m-%d')); // YYYY-MM-DD 포맷
+  // 그리드라인
+  const gridlines = svg.append('g')
+      .attr('class', 'gridlines')
+      .attr('transform', `translate(${usableArea.left},0)`);
 
-svg.append('g')
-    .attr('transform', `translate(0, ${usableArea.bottom})`)
-    .call(xAxis)
-    .selectAll("text")
-    .style("text-anchor", "end");
+  gridlines.call(
+      d3.axisLeft(yScale)
+        .tickFormat('')
+        .tickSize(-usableArea.width)
+  ).selectAll('line')
+    .attr('stroke', '#ccc')
+    .attr('stroke-dasharray', '2,2');
+
+  // X축
+  svg.append('g')
+      .attr('transform', `translate(0, ${usableArea.bottom})`)
+      .call(d3.axisBottom(xScale)
+        .ticks(d3.timeDay.every(1))
+        .tickFormat(d3.timeFormat('%Y-%m-%d')))
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("transform", "rotate(-45)");
 
   // Y축
-  const yAxis = d3.axisLeft(yScale);
   svg.append('g')
-    .attr('transform', `translate(${usableArea.left}, 0)`)
-    .call(yAxis);
+      .attr('transform', `translate(${usableArea.left},0)`)
+      .call(d3.axisLeft(yScale)
+        .tickFormat(d => String(d % 24).padStart(2, '0') + ':00'));
 
-  // 점 그리기
+  // 점 그리기 + tooltip 이벤트
   svg.selectAll('circle')
-    .data(data)
+    .data(commits)
     .join('circle')
-    .attr('cx', d => xScale(d.datetime))
-    .attr('cy', d => yScale(d.datetime.getHours() + d.datetime.getMinutes()/60))
-    .attr('r', 3)
+    .attr('cx', d => xScale(d.date))
+    .attr('cy', d => yScale(d.hourFrac))
+    .attr('r', 5)
     .attr('fill', 'steelblue')
-    .attr('opacity', 0.7);
+    .attr('opacity', 0.7)
+    .on('mouseenter', (event, commit) => {
+      renderTooltipContent(commit);
+      const tooltip = document.getElementById('commit-tooltip');
+      tooltip.style.display = 'block';
+      tooltip.style.left = (event.pageX + 10) + 'px';
+      tooltip.style.top = (event.pageY + 10) + 'px';
+    })
+    .on('mousemove', (event) => {
+      const tooltip = document.getElementById('commit-tooltip');
+      tooltip.style.left = (event.pageX + 10) + 'px';
+      tooltip.style.top = (event.pageY + 10) + 'px';
+    })
+    .on('mouseleave', () => {
+      document.getElementById('commit-tooltip').style.display = 'none';
+    });
 }
+
+// tooltip 내용 렌더링
+function renderTooltipContent(commit) {
+  if (!commit) return;
+
+  document.getElementById('commit-link').href = commit.url;
+  document.getElementById('commit-link').textContent = commit.id;
+
+  document.getElementById('commit-date').textContent = commit.datetime?.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  document.getElementById('commit-time').textContent = commit.datetime?.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  document.getElementById('commit-author').textContent = commit.author;
+  document.getElementById('commit-lines').textContent = commit.totalLines;
+}
+
