@@ -14,6 +14,7 @@ async function loadData() {
 }
 
 
+
 // 커밋 처리
 function processCommits(data) {
     return d3.groups(data, (d) => d.commit)
