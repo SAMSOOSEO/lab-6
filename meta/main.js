@@ -18,7 +18,6 @@ const data = await d3.csv(`meta/loc.csv?t=${Date.now()}`, (row) => ({
 
 
 
-
 // 커밋 처리
 function processCommits(data) {
     return d3.groups(data, (d) => d.commit)
