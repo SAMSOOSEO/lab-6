@@ -1,17 +1,25 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
-// CSV 로드 & 변환
+
+
+
 async function loadData() {
-    const data = await d3.csv('loc.csv', (row) => ({
+    const data = await d3.csv('meta/loc.csv', (row) => ({
         ...row,
         line: Number(row.line),
         depth: Number(row.depth),
         length: Number(row.length),
-        date: new Date(row.date + 'T00:00' + row.timezone),
+        date: new Date(row.date + 'T00:00' + (row.timezone || '+09:00')),
         datetime: new Date(row.datetime),
     }));
+    console.log("Loaded data:", data); // 👈 이거 꼭 확인!
+    console.log("Data length:", data.length);
+    window.data = data;  // 또는 그냥 data = data; (암묵적 전역)
+
     return data;
 }
+
+
 
 
 
@@ -24,7 +32,7 @@ function processCommits(data) {
 
             let ret = {
                 id: commit,
-                url: 'https://github.com/SAMSOOSEO/lab-6/' + commit,
+                url: 'https://github.com/SAMSOOSEO/lab-6/commit/' + commit,
                 author,
                 date,
                 time,
