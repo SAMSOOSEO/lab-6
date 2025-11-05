@@ -372,29 +372,29 @@ dl.info[hidden]:not(:hover, :focus-within) {
 circle.selected {
   fill: #ff6b6b;
 }
+
+
 #language-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
+  display: flex;       /* 가로로 나열 */
+  flex-wrap: wrap;     /* 공간이 부족하면 다음 줄로 이동 */
+  gap: 1rem;           /* 카드 사이 간격 */
+  margin-top: 1rem;    /* 위쪽 여백 */
 }
 
 .lang-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 1rem 1.5rem; /* 패딩 늘려서 카드가 커지도록 */
-  min-width: 140px;     /* 카드 최소 폭 조금 확대 */
-  text-align: center;
-  box-shadow: 0 2px 6px rgb(255, 255, 255);
+  background-color: #ffffff;   /* 깔끔한 흰색 배경 */
+  padding: 1rem 1.5rem;        /* 카드 내부 여백 넉넉히 */
+  min-width: 140px;            /* 너무 작아지지 않도록 최소 폭 설정 */
+  text-align: center;          /* 글자 중앙 정렬 */
 }
 
 .lang-name {
-  font-weight: bold;
-  font-size: 1.3rem;    /* 글자 크게 */
-  margin-bottom: 0.3rem;
+  font-weight: bold;            /* 언어 이름 강조 */
+  font-size: 1.3rem;            /* 글자 크게 */
+  margin-bottom: 0.3rem;        /* 아래 여백으로 숫자와 구분 */
 }
 
 .lang-count {
-  font-size: 1.1rem;    /* 숫자도 키움 */
-  color: #333;
+  font-size: 1.1rem;            /* 라인 수 숫자도 읽기 좋게 */
+  color: #333;                  /* 진한 회색으로 눈에 잘 띄게 */
 }
