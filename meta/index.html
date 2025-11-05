@@ -17,11 +17,14 @@
     <p>
         This page includes stats about the code of this website
     </p>
+
+
     <h2> Summary</h2>
     <div id="stats"></div>
 
 
     <h2>Commits by time of day</h2>
+        <p id="selection-count">No commits selected</p>
     <div id="chart"></div>
 
     <dl id="commit-tooltip" class="info tooltip" hidden>
@@ -42,10 +45,10 @@
   <dt>Lines edited</dt>
   <dd id="commit-lines"></dd>
 </dl>
+<dl id="language-breakdown" class="stats"></dl>
 
-</dl>
-    <script type="module" src="main.js"></script>
-    <script type="module" src="../global.js"></script>
+<script type="module" src="main.js"></script>
+<script type="module" src="../global.js"></script>
 </body>
 
 </html>
