@@ -113,9 +113,10 @@ function drawScatter(data, commits) {
     .domain([0, 24])
     .range([usableArea.bottom, usableArea.top]);
 
-  const xScale = d3.scaleTime()
-    .domain(d3.extent(data, d => d.date))
-    .range([usableArea.left, usableArea.right]);
+const xExtent = d3.extent(data, d => d.date);
+const xScale = d3.scaleTime()
+  .domain([d3.timeDay.offset(xExtent[0], -1), d3.timeDay.offset(xExtent[1], 1)])  
+  .range([usableArea.left, usableArea.right]);
 
   // 그리드라인
   const gridlines = svg.append('g')
