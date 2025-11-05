@@ -113,67 +113,93 @@ function drawScatter(data, commits) {
     .attr('width', width)
     .attr('height', height);
 
-  // 스케일
+  // X, Y 스케일
   const yScale = d3.scaleLinear()
     .domain([0, 24])
     .range([usableArea.bottom, usableArea.top]);
 
-const xExtent = d3.extent(data, d => d.date);
-const xScale = d3.scaleTime()
-  .domain([d3.timeDay.offset(xExtent[0], -1), d3.timeDay.offset(xExtent[1], 1)])  
-  .range([usableArea.left, usableArea.right]);
+  const xExtent = d3.extent(data, d => d.date);
+  const xScale = d3.scaleTime()
+    .domain([d3.timeDay.offset(xExtent[0], -1), d3.timeDay.offset(xExtent[1], 1)])
+    .range([usableArea.left, usableArea.right]);
+
+  // 점 크기 스케일
+  const [minLines, maxLines] = d3.extent(commits, d => d.totalLines);
+  const rScale = d3.scaleSqrt()
+    .domain([minLines, maxLines])
+    .range([2, 30]);
+
+  const sortedCommits = d3.sort(commits, d => -d.totalLines); // 큰 점이 뒤쪽으로
 
   // 그리드라인
-  const gridlines = svg.append('g')
-      .attr('class', 'gridlines')
-      .attr('transform', `translate(${usableArea.left},0)`);
-
-  gridlines.call(
-      d3.axisLeft(yScale)
-        .tickFormat('')
-        .tickSize(-usableArea.width)
-  ).selectAll('line')
+  svg.append('g')
+    .attr('class', 'gridlines')
+    .attr('transform', `translate(${usableArea.left},0)`)
+    .call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableArea.width))
+    .selectAll('line')
     .attr('stroke', '#ccc')
     .attr('stroke-dasharray', '2,2');
 
   // X축
   svg.append('g')
-      .attr('transform', `translate(0, ${usableArea.bottom})`)
-      .call(d3.axisBottom(xScale)
-        .ticks(d3.timeDay.every(1))
-        .tickFormat(d3.timeFormat('%Y-%m-%d')))
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("transform", "rotate(-45)");
+    .attr('transform', `translate(0,${usableArea.bottom})`)
+    .call(d3.axisBottom(xScale).ticks(d3.timeDay.every(1)).tickFormat(d3.timeFormat('%Y-%m-%d')))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("transform", "rotate(-45)");
 
   // Y축
   svg.append('g')
-      .attr('transform', `translate(${usableArea.left},0)`)
-      .call(d3.axisLeft(yScale)
-        .tickFormat(d => String(d % 24).padStart(2, '0') + ':00'));
+    .attr('transform', `translate(${usableArea.left},0)`)
+    .call(d3.axisLeft(yScale).tickFormat(d => String(d % 24).padStart(2, '0') + ':00'));
 
-        
-  // 점 그리기 + tooltip 이벤트
-svg.selectAll('circle')
-  .data(commits)
-  .join('circle')
-  .attr('cx', d => xScale(d.date))
-  .attr('cy', d => yScale(d.hourFrac))
-  .attr('r', 5)
-  .attr('fill', 'steelblue')
-  .attr('opacity', 0.7)
-  .on('mouseenter', (event, commit) => {
-      renderTooltipContent(commit);    // 내용 업데이트
-      updateTooltipVisibility(true);   // 툴팁 보여주기
-      updateTooltipPosition(event);    // 마우스 위치로 이동
-  })
-  .on('mousemove', (event) => {
-      updateTooltipPosition(event);    // 마우스 따라 이동
-  })
-  .on('mouseleave', () => {
-      updateTooltipVisibility(false);  // 툴팁 숨기기
-  });
+  // 1️⃣ 산점도 점
+  const dots = svg.append('g')
+    .attr('class', 'dots')
+    .selectAll('circle')
+    .data(sortedCommits)
+    .join('circle')
+    .attr('cx', d => xScale(d.date))
+    .attr('cy', d => yScale(d.hourFrac))
+    .attr('r', d => rScale(d.totalLines))
+    .attr('fill', 'steelblue')
+    .style('fill-opacity', 0.7)
+    .on('mouseenter', (event, commit) => {
+      d3.select(event.currentTarget).style('fill-opacity', 1);
+      renderTooltipContent(commit);
+      updateTooltipVisibility(true);
+      updateTooltipPosition(event);
+    })
+    .on('mousemove', (event) => updateTooltipPosition(event))
+    .on('mouseleave', (event) => {
+      d3.select(event.currentTarget).style('fill-opacity', 0.7);
+      updateTooltipVisibility(false);
+    });
+
+  // 2️⃣ 브러시
+  const brush = d3.brush()
+    .extent([[usableArea.left, usableArea.top], [usableArea.right, usableArea.bottom]])
+    .on("brush end", (event) => {
+      // 선택된 영역 좌표
+      const selection = event.selection;
+      if (!selection) return;
+      const [[x0, y0], [x1, y1]] = selection;
+
+      // 영역 안에 있는 점만 필터링 (선택)
+      dots.attr('stroke', d =>
+        xScale(d.date) >= x0 && xScale(d.date) <= x1 && yScale(d.hourFrac) >= y0 && yScale(d.hourFrac) <= y1
+          ? 'orange' : null
+      );
+    });
+
+  svg.append("g")
+    .attr("class", "brush")
+    .call(brush);
+
+  // 3️⃣ 브러시 overlay 때문에 tooltip 사라지는 문제 해결
+  svg.selectAll('.dots, .overlay ~ *').raise();
 }
+
 
 // tooltip 내용 렌더링
 function renderTooltipContent(commit) {
@@ -211,3 +237,31 @@ function updateTooltipPosition(event) {
 
 
 /*Step 4: Communicating lines edited via dot size 부터 할차례임*/
+function isCommitSelected(selection, commit, xScale, yScale) {
+  if (!selection) return false;
+
+  const [[x0, y0], [x1, y1]] = selection;
+  const cx = xScale(commit.date);
+  const cy = yScale(commit.hourFrac); 
+
+  return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
+}
+
+function brushed(event, xScale, yScale) {
+  const selection = event.selection;
+
+  d3.selectAll('circle')
+    .classed('selected', d => isCommitSelected(selection, d, xScale, yScale));
+}
+
+const brush = d3.brush()
+  .extent([[usableArea.left, usableArea.top], [usableArea.right, usableArea.bottom]])
+  .on('start brush end', (event) => brushed(event, xScale, yScale));
+
+svg.append('g')
+  .attr('class', 'brush')
+  .call(brush);
+
+// 브러시 뒤쪽 점이 안 가려지도록
+svg.selectAll('circle').raise();
+
