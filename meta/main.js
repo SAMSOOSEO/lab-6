@@ -105,19 +105,27 @@ function renderLanguageBreakdown(selection, commits, xScale, yScale) {
   const selectedCommits = selection
     ? commits.filter(d => isCommitSelected(selection, d, xScale, yScale))
     : [];
-  const container = document.getElementById('language-breakdown');
-  if (selectedCommits.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
+
+  const container = d3.select('#language-breakdown');
+  container.html(''); // 초기화
+
+
+
   const lines = selectedCommits.flatMap(d => d.lines);
-  const breakdown = d3.rollup(lines, v => v.length, d => d.type);
-  container.innerHTML = '';
-  for (const [language, count] of breakdown) {
-    const proportion = count / lines.length;
-    container.innerHTML += `<dt>${language}</dt><dd>${count} lines (${d3.format('.1~%')(proportion)})</dd>`;
-  }
+  const breakdown = Array.from(d3.rollup(lines, v => v.length, d => d.type))
+    .sort((a, b) => b[1] - a[1]);
+
+  const cards = container.selectAll('div.lang-card')
+    .data(breakdown)
+    .join('div')
+    .attr('class', 'lang-card');
+
+  cards.append('div').attr('class', 'lang-name').text(d => d[0]);
+  cards.append('div')
+    .attr('class', 'lang-count')
+    .text(d => `${d[1]} lines (${d3.format('.1~%')(d[1]/lines.length)})`);
 }
+
 
 // 산점도 그리기
 function drawScatter(data, commits) {
@@ -191,3 +199,4 @@ function drawScatter(data, commits) {
   renderCommitInfo(data, commits);
   drawScatter(data, commits);
 })();
+

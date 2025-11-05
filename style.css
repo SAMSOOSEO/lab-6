@@ -372,3 +372,29 @@ dl.info[hidden]:not(:hover, :focus-within) {
 circle.selected {
   fill: #ff6b6b;
 }
+#language-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.lang-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1rem 1.5rem; /* 패딩 늘려서 카드가 커지도록 */
+  min-width: 140px;     /* 카드 최소 폭 조금 확대 */
+  text-align: center;
+  box-shadow: 0 2px 6px rgb(255, 255, 255);
+}
+
+.lang-name {
+  font-weight: bold;
+  font-size: 1.3rem;    /* 글자 크게 */
+  margin-bottom: 0.3rem;
+}
+
+.lang-count {
+  font-size: 1.1rem;    /* 숫자도 키움 */
+  color: #333;
+}
