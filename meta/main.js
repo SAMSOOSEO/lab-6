@@ -1,17 +1,22 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
-// CSV 로드 & 변환
+
+
+
 async function loadData() {
-    const data = await d3.csv('loc.csv', (row) => ({
+   const data = await d3.csv('loc.csv', (row) => ({
         ...row,
         line: Number(row.line),
         depth: Number(row.depth),
         length: Number(row.length),
-        date: new Date(row.date + 'T00:00' + row.timezone),
+        date: new Date(row.date + 'T00:00' + (row.timezone || '+09:00')),
         datetime: new Date(row.datetime),
     }));
+
     return data;
 }
+
+
 
 
 // 커밋 처리
@@ -23,7 +28,7 @@ function processCommits(data) {
 
             let ret = {
                 id: commit,
-                url: 'https://github.com/vis-society/lab-6/commit/' + commit,
+                url: 'https://github.com/SAMSOOSEO/lab-6/commit/' + commit,
                 author,
                 date,
                 time,
